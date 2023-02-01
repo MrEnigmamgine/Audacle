@@ -1,0 +1,8 @@
+ipython
+torch==1.11.0 
+torchvision==0.12.0 
+torchaudio==0.11.0 
+torchtext==0.12.0
+speechbrain==0.5.12
+pyannote.audio
+git+https://github.com/openai/whisper.git#egg=openai-whisper
