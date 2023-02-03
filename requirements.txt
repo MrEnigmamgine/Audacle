@@ -1,5 +1,7 @@
+## Included in docker image, no need to redownload
 # torch --extra-index-url https://download.pytorch.org/whl/cu116
 # torchvision --extra-index-url https://download.pytorch.org/whl/cu116
 # torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
 # torchtext --extra-index-url https://download.pytorch.org/whl/cu116
+
 git+https://github.com/openai/whisper.git#egg=openai-whisper
