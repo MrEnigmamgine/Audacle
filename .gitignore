@@ -1,3 +1,8 @@
 *.ogg
 env.*
 *.pt
+*.aup
+*.ckpt
+data/db_02-03-2023/V8DcTChKFF_data/info.txt
+data/db_02-03-2023/V8DcTChKFF_data/raw.dat
+models/speechbrain/spkrec-ecapa-voxceleb/hyperparams.yaml
