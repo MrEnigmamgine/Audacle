@@ -3,5 +3,9 @@
 # torchvision --extra-index-url https://download.pytorch.org/whl/cu116
 # torchtext --extra-index-url https://download.pytorch.org/whl/cu116
 
-torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
-git+https://github.com/openai/whisper.git#egg=openai-whisper
+## Likely to use
+torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
+openai-whisper==20230124
+
+## Unlikely to use, but recorded here for posterity
+# speechbrain==0.5.13
