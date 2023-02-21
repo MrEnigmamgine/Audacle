@@ -1,11 +1,13 @@
-## Included in docker image, no need to redownload
-# torchvision --extra-index-url https://download.pytorch.org/whl/cu116
-# torchtext --extra-index-url https://download.pytorch.org/whl/cu116
-
-## Likely to use
-torch --extra-index-url https://download.pytorch.org/whl/cu116
-torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
+pandas
+numpy
+bs4
 openai-whisper==20230124
 
-## Unlikely to use, but recorded here for posterity
-# speechbrain==0.5.13
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch
+torchaudio
+
+# torchvision --extra-index-url https://download.pytorch.org/whl/cu116
+# torchtext --extra-index-url https://download.pytorch.org/whl/cu116
+# torch --extra-index-url https://download.pytorch.org/whl/cu116
+# torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
