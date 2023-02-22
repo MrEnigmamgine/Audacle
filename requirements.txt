@@ -1,6 +1,7 @@
 pandas
 numpy
 bs4
+lmxl
 openai-whisper==20230124
 
 --extra-index-url https://download.pytorch.org/whl/cu116
