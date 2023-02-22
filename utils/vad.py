@@ -3,17 +3,12 @@ import torch
 
 
 torch.set_num_threads(1)
-models_dir = './models'
-
 
 class VAD():
     """Wrapper class to ease the making and using of the silero-vad model."""
     def __init__(self, force_reload=False):
         ## Silero VAD Model
-        silero_dir = os.path.join(models_dir, 'silero-vad')
-        source_str = silero_dir if os.path.exists(silero_dir) else 'snakers4/silero-vad'
-        vad_model, utils =    torch.hub.load(repo_or_dir=source_str,
-                                    source='local',
+        vad_model, utils =    torch.hub.load(repo_or_dir='snakers4/silero-vad',
                                     model='silero_vad',
                                     force_reload=force_reload,
                                     onnx=False)
