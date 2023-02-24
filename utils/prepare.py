@@ -1,10 +1,14 @@
 import os, re, json
+import copy
+import pandas as pd
 import torch
 import whisper
 from typing import List
 from .vad import VAD
-from .avr import AVR
+from .asr import ASR
+from .alignment import Aligner
 
+SR=16000
 
 # IO functions
 def cache_json(data: object, path: str):
@@ -84,27 +88,112 @@ def collect_and_align_chunks(wav: torch.Tensor, segments: List[dict]):
     return new_wav, new_segs
 
 
-#AVR Handling
-def new_avr_data(audio, verbose=False, model_name = 'medium.en'):
-    avr = AVR(model_name)
-    results = avr.transcribe(audio, verbose=verbose)
+#ASR Handling
+def new_asr_data(audio, verbose=False, model_name = 'medium.en'):
+    asr = ASR(model_name)
+    results = asr.transcribe(audio, verbose=verbose)
     return results['segments']
 
 
-def get_avr_data(path, waveform=None, refresh=False, model_name = 'medium.en'):
-    json_path = f"{path}_avr.json"
+def get_asr_data(path, waveform=None, refresh=False, model_name = 'medium.en'):
+    json_path = f"{path}_asr.json"
     if os.path.exists(json_path) and not refresh:
-        avr_data = load_json(json_path)
+        asr_data = load_json(json_path)
     else:
         if waveform==None:
             waveform = get_waveform(path)
         wav = collect_chunks(waveform, get_vad_data(path, waveform=waveform))
-        print('Transcribing AVR data')
-        avr_data = new_avr_data(wav, model_name=model_name)
-        cache_json(avr_data, json_path)
+        print('Transcribing ASR data')
+        asr_data = new_asr_data(wav, model_name=model_name)
+        cache_json(asr_data, json_path)
         print(f"Done. Data saved: '{json_path}'")
-    return avr_data
+    return asr_data
 
 
-def get_full_text(avr_data):
-    return ''.join([segment['text'] for segment in avr_data])
+def get_full_text(data, separator = ''):
+    return separator.join([segment['text'] for segment in data])
+
+
+# Alignment handling
+
+def convert_timestamp_segments_to_frames(segments, sr=SR):
+    df = pd.DataFrame(segments)
+    df[['start','end']] = (df[['start','end']] * sr).round().astype(int)
+    return df.to_dict(orient='records')
+
+
+def convert_frames_segments_to_timestamp(segments, sr=SR):
+    df = pd.DataFrame(segments)
+    df[['start','end']] = (df[['start','end']] / sr)
+    return df.to_dict(orient='records')
+
+
+def new_alignment(asr_data, audio):
+    aligner = Aligner()
+    alignment_data = aligner.align(asr_data, audio)
+    alignment_data = convert_timestamp_segments_to_frames(alignment_data['word_segments'])
+    return alignment_data
+
+def get_alignment_data(path, waveform=None, vad_data=None, asr_data=None, refresh=False):
+    json_path = f"{path}_align.json"
+    if os.path.exists(json_path) and not refresh:
+        alignment_data = load_json(json_path)
+    else:
+        if waveform==None:
+            waveform = get_waveform(path)
+        if vad_data==None:
+            vad_data = get_vad_data(path, waveform)
+        if asr_data==None:
+            asr_data = get_asr_data(path, waveform)
+        print('Aligning ASR data')
+        short_wav = collect_chunks(waveform, vad_data)
+        alignment_data = new_alignment(asr_data, short_wav)
+        cache_json(alignment_data, json_path)
+        print(f"Done. Data saved: '{json_path}'")
+    return alignment_data
+
+def get_range_overlap_percent(parent: range, child: range) -> float:
+    """Calculates the percentage of which the child's boundries fit within the parent's boundries."""
+    olap = range(max(parent[0], child[0]), min(parent[-1], child[-1])+1)
+    olap_percent = len(olap) / len(child)
+    return olap_percent
+
+def child_in_parent(parent, child, threshold=0.5) -> bool:
+    s = range(parent['start'],parent['end'])
+    w = range(child['start'],child['end'])
+    return get_range_overlap_percent(s, w) >= threshold
+
+def gather_children(parents, children):
+    results = []
+    for parent in parents:
+        out = []
+        for idx, child in enumerate(children):
+            if child_in_parent(parent, child):
+                out.append(child)
+        copy = parent.copy()
+        copy['children'] = out
+        results.append(copy)
+    return results
+
+def migrate_children(source, target):
+    """Copies child segments from source segment to the target segment and adjust timestamps to match."""
+    out = copy.deepcopy(target)
+    diff = target['start'] - source['start']
+    out['children'] = copy.deepcopy(source['children'])
+    for child in out['children']:
+        child['start'] = child['start'] + diff
+        child['end'] = child['end'] + diff
+    return out
+
+def batch_migrate_children(source, target):
+    return [migrate_children(s,t) for s,t in zip(source,target)]
+
+def get_srt_data(path, refresh=False):
+    vad_data = get_vad_data(path, refresh=refresh)
+    align_data = get_alignment_data(path, refresh=refresh)
+    vad_short = align_chunks(vad_data)
+    srt_short = gather_children(vad_short, align_data)
+    srt_data = batch_migrate_children(srt_short, vad_data)
+    for segment in srt_data:
+        segment['text'] = get_full_text(segment['children'], ' ')
+    return srt_data

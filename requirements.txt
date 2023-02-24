@@ -2,7 +2,8 @@ pandas
 numpy
 bs4
 lmxl
-openai-whisper==20230124
+openai-whisper
+transformers
 
 --extra-index-url https://download.pytorch.org/whl/cu116
 torch

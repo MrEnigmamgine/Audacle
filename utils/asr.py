@@ -12,7 +12,7 @@ models_dir = './models'
 whisper_dir = os.path.join(models_dir, 'whisper')
 
 
-class AVR():
+class ASR():
 
     def __init__(self, model_name= 'medium.en'):
         self.model = whisper.load_model(model_name, download_root= whisper_dir, device=DEVICE)
