@@ -34,14 +34,9 @@ def load_audio(file: str, sr: int = SR):
     return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0  #Why 32768?
 
 def save_audio(path: str,
-               audio,
+               tensor: torch.Tensor,
                sampling_rate: int = 16000):
-    if not torch.is_tensor(audio):
-        try:
-            audio = torch.Tensor(audio)
-        except:
-            raise TypeError("Audio cannot be casted to tensor. Cast it manually")
-    torchaudio.save(path, audio.unsqueeze(0), sampling_rate, bits_per_sample=16)
+    torchaudio.save(path, tensor.unsqueeze(0), sampling_rate, bits_per_sample=16)
 
 def get_segment_waveform(segment, waveform):
     start = segment['start']

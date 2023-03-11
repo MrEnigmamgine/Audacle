@@ -1,7 +1,13 @@
 .venv/
 data/
+__pycache__/
+*/__pycache__/
+pretrained_pipelines/
+
 *.ogg
 *.wav
+*.flac
+*.mp3
 env.*
 *.pt
 *.aup
@@ -10,3 +16,4 @@ env.*
 data/db_02-03-2023/V8DcTChKFF_data/info.txt
 data/db_02-03-2023/V8DcTChKFF_data/raw.dat
 *.json
+training_data/
